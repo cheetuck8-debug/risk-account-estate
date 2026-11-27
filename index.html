@@ -485,6 +485,10 @@
     Lark attendance, the roster sheet for leave and the riskai2 vendor page, and turns that into per-verifier figures,
     rank, late / MIA and leave.</p>
 
+  <div class="notebox"><b>Rule-based, automatic:</b> the KPI is calculated from the configured rules, not tallied by hand.
+    The uploaded workbook, Lark attendance and the roster are scored per staff member, per day and per shift; change a rule
+    and the figures recompute on the next build. The source data is read, never edited.</div>
+
   <div class="grid">
     <div class="card"><div class="k">Where it runs</div><div class="v mono">/opt/kpi-dashboard<br>FastAPI + systemd (kpi-dashboard), uvicorn from its own venv</div></div>
     <div class="card"><div class="k">Public</div><div class="v mono">kpi.mcwriskops.com<br><span style="color:var(--tx3)">kpi.mcwriskops.com/vendor is the riskai2 page</span></div></div>
@@ -505,6 +509,7 @@
       <h3>Safeguards</h3>
       <ul class="safe">
         <li>Reads no back office — there is no BO session to lose or to lock</li>
+        <li>Scoring is rule-driven: every KPI figure comes from the rules applied to the uploaded data, so the same input always gives the same score</li>
         <li>Data comes in as files and API pulls; nothing is written back to a back office</li>
         <li>Staff and rank edits are made by the dashboard's own admin, recorded in the KPI change notes</li>
         <li>Served over HTTPS on the same VPS as the rest of the estate</li>
