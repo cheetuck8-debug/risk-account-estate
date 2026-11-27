@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Risk-AI Account Estate — Back-office Usage</title>
+<meta name="robots" content="noindex, nofollow">
+<style>
+  :root{
+    --bg:#0a0e13; --panel:#111821; --panel2:#0e151d; --line:#1e2a36; --line2:#2a3a4a;
+    --tx:#e6edf3; --tx2:#93a4b5; --tx3:#64798c;
+    --read:#2fd4c4; --write:#f5a524; --money:#f2555a; --ok:#39d98a; --off:#64798c;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--tx);
+    font:15px/1.6 -apple-system,"Segoe UI",Inter,Roboto,system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased}
+  a{color:var(--read);text-decoration:none}
+  code{font:12.5px/1.4 ui-monospace,"SF Mono",Consolas,monospace;background:#16212c;
+    border:1px solid var(--line);border-radius:4px;padding:1px 5px;color:#cfe3f0;white-space:nowrap}
+  .wrap{display:grid;grid-template-columns:264px minmax(0,1fr);max-width:1440px;margin:0 auto}
+  /* ---- sidebar ---- */
+  aside{position:sticky;top:0;height:100vh;padding:26px 18px 26px 26px;border-right:1px solid var(--line);
+    display:flex;flex-direction:column;gap:4px;background:var(--panel2)}
+  .brand{font-weight:700;letter-spacing:.14em;font-size:11px;color:var(--tx3);text-transform:uppercase}
+  .brand b{display:block;font-size:17px;letter-spacing:-.01em;text-transform:none;color:var(--tx);
+    font-weight:650;margin-top:4px}
+  nav{margin-top:22px;display:flex;flex-direction:column;gap:2px}
+  nav a{display:flex;align-items:center;gap:9px;padding:7px 10px;border-radius:7px;color:var(--tx2);
+    font-size:13.5px;transition:.12s}
+  nav a:hover{background:#16212c;color:var(--tx)}
+  nav a.on{background:#17232e;color:var(--tx);box-shadow:inset 2px 0 0 var(--read)}
+  nav a .dot{width:6px;height:6px;border-radius:50%;background:var(--ok);flex:none}
+  nav a .dot.off{background:var(--off)}
+  nav a .dot.warn{background:var(--money)}
+  nav small{margin-left:auto;font-size:11px;color:var(--tx3);font-family:ui-monospace,monospace}
+  .side-foot{margin-top:auto;font-size:11.5px;color:var(--tx3);line-height:1.5;border-top:1px solid var(--line);padding-top:14px}
+  /* ---- main ---- */
+  main{padding:40px 44px 90px;min-width:0}
+  header.hero{border-bottom:1px solid var(--line);padding-bottom:26px;margin-bottom:6px}
+  h1{font-size:29px;line-height:1.2;letter-spacing:-.02em;margin:0 0 10px;font-weight:650}
+  .lede{color:var(--tx2);max-width:64ch;margin:0}
+  .meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+  .tag{font-size:11.5px;color:var(--tx2);border:1px solid var(--line);background:var(--panel);
+    border-radius:999px;padding:3px 10px}
+  .tag b{color:var(--tx);font-weight:600}
+  /* ---- matrix ---- */
+  .matrix{margin:26px 0 8px;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--panel)}
+  .matrix .mtitle{padding:12px 16px;border-bottom:1px solid var(--line);font-size:12px;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--tx3)}
+  table{width:100%;border-collapse:collapse;font-size:13.5px}
+  thead th{text-align:left;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--tx3);
+    font-weight:600;padding:10px 14px;border-bottom:1px solid var(--line);white-space:nowrap}
+  tbody td{padding:10px 14px;border-bottom:1px solid #16212c;vertical-align:top;color:var(--tx2)}
+  tbody tr:last-child td{border-bottom:0}
+  tbody tr:hover{background:#141d26}
+  td.acc{color:var(--tx);font-family:ui-monospace,monospace;font-size:13px;white-space:nowrap}
+  .y{color:var(--read)} .n{color:var(--tx3)} .m{color:var(--money)} .a{color:var(--write)}
+  /* ---- sections ---- */
+  section{scroll-margin-top:24px;padding-top:46px}
+  .sec-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+  h2{font-size:21px;margin:0;letter-spacing:-.01em;font-weight:650}
+  h2 span{font-family:ui-monospace,monospace;color:var(--read);font-size:19px}
+  .role{color:var(--tx2);font-size:13.5px}
+  .pill{font-size:11px;padding:3px 9px;border-radius:999px;border:1px solid;font-weight:600;letter-spacing:.03em;white-space:nowrap}
+  .pill.run{color:var(--ok);border-color:#1d4d38;background:#0e2419}
+  .pill.off{color:var(--off);border-color:#2a3a4a;background:#131b23}
+  .pill.r{color:var(--read);border-color:#134e4a;background:#0a2321}
+  .pill.w{color:var(--write);border-color:#4d3a12;background:#241b0c}
+  .pill.d{color:var(--money);border-color:#4d1a1d;background:#241012}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px;margin:20px 0 4px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+  .card .k{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--tx3);margin-bottom:5px}
+  .card .v{font-size:13.5px;color:var(--tx);line-height:1.5}
+  .card .v.mono{font-family:ui-monospace,monospace;font-size:12.5px;word-break:break-all}
+  h3{font-size:11px;letter-spacing:.11em;text-transform:uppercase;color:var(--tx3);
+    margin:30px 0 10px;font-weight:600}
+  table.t{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--panel)}
+  table.t td:first-child{color:var(--tx);width:230px;font-weight:500}
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:1000px){.cols{grid-template-columns:1fr}}
+  ul{list-style:none;margin:0;padding:0;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
+  ul li{padding:9px 14px 9px 34px;border-bottom:1px solid #16212c;position:relative;font-size:13.5px;color:var(--tx2)}
+  ul li:last-child{border-bottom:0}
+  ul li::before{content:"";position:absolute;left:14px;top:16px;width:6px;height:6px;border-radius:2px}
+  ul.never li::before{background:var(--money);opacity:.75}
+  ul.safe li::before{background:var(--read);opacity:.75}
+  ul.flow li::before{background:var(--write);opacity:.75}
+  ul.write li::before{background:var(--write)}
+  .warnbox{margin-top:14px;border:1px solid #4d1a1d;background:#1a0f11;border-radius:10px;padding:13px 16px;
+    font-size:13.5px;color:#f0c2c4}
+  .warnbox b{color:var(--money)}
+  .notebox{margin-top:14px;border:1px solid #4d3a12;background:#1c1508;border-radius:10px;padding:13px 16px;
+    font-size:13.5px;color:#ecd3a8}
+  .notebox b{color:var(--write)}
+  footer{margin-top:70px;border-top:1px solid var(--line);padding-top:18px;color:var(--tx3);font-size:12.5px;max-width:80ch}
+  @media(max-width:860px){
+    .wrap{grid-template-columns:1fr}
+    aside{position:static;height:auto;border-right:0;border-bottom:1px solid var(--line);padding:20px}
+    nav{flex-direction:row;flex-wrap:wrap;margin-top:14px}
+    nav a{font-size:12.5px;padding:5px 9px}
+    .side-foot{display:none}
+    main{padding:26px 18px 60px}
+    table.t td:first-child{width:auto}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+<aside>
+  <div class="brand">Risk Operations<b>Account Estate</b></div>
+  <nav id="nav">
+    <a href="#overview"><span class="dot"></span>Overview</a>
+    <a href="#riskai"><span class="dot"></span>riskai<small>WTD</small></a>
+    <a href="#riskai2"><span class="dot"></span>riskai2<small>Vendor</small></a>
+    <a href="#riskai3"><span class="dot"></span>riskai3<small>RiskDesk</small></a>
+    <a href="#riskai4"><span class="dot"></span>riskai4<small>Central</small></a>
+    <a href="#riskai5"><span class="dot warn"></span>riskai5<small>Dispose</small></a>
+    <a href="#kpi"><span class="dot off"></span>KPI<small>Dashboard</small></a>
+  </nav>
+  <div class="side-foot">
+    Five back-office accounts, 18 brands.<br>
+    Source: VPS the company VPS,<br>measured Nov 23–24, 2026.
+  </div>
+</aside>
+
+<main>
+<header class="hero">
+  <h1>Back-office accounts — what each one actually does</h1>
+  <p class="lede">One account per system, one reader each. Every write a system can make is listed below,
+    and so is everything it is blocked from doing. Payment stays with the payment department in all five cases.</p>
+  <div class="meta">
+    <span class="tag"><b>18</b> brands</span>
+    <span class="tag"><b>5</b> accounts</span>
+    <span class="tag"><b>2</b> can write to the back office</span>
+    
+    <span class="tag">Reviewed <b>Nov 24, 2026</b></span>
+  </div>
+</header>
+
+<div class="matrix" id="overview">
+  <div class="mtitle">At a glance</div>
+  <table>
+    <thead><tr>
+      <th>Account</th><th>System</th><th>Rights</th><th>Back-office writes</th><th>Money</th><th>State</th>
+    </tr></thead>
+    <tbody>
+      <tr><td class="acc">riskai</td><td>WTD bot</td><td class="y">Approve + hold</td><td>Approve, hold, remark, release auto-verify</td><td class="a">Approves withdrawals — never pays out</td><td class="n">Running · 10 of 18 sites</td></tr>
+      <tr><td class="acc">riskai2</td><td>Vendor Report</td><td class="y">Read-only</td><td class="n">None</td><td class="n">None</td><td class="n">Running</td></tr>
+      <tr><td class="acc">riskai3</td><td>RiskDesk</td><td class="y">Read-only</td><td class="n">None</td><td class="n">None</td><td class="n">Running</td></tr>
+      <tr><td class="acc">riskai4</td><td>Risk Central</td><td class="y">Read-only</td><td class="n">None — bot paused</td><td class="n">None</td><td class="n">Running · not on the risk VPS</td></tr>
+      <tr><td class="acc">riskai5</td><td>Exchange Update Bot</td><td class="m">Reject · take back · deactivate</td><td>Reject, take-back, inactive, remark, active</td><td class="m">Rejects &amp; recalls — never pays out</td><td class="n">Running</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ============ riskai ============ -->
+<section id="riskai">
+  <div class="sec-head">
+    <h2><span>riskai</span> — WTD bot</h2>
+    <span class="pill run">Running</span><span class="pill w">Approve + hold</span>
+  </div>
+  <p class="role">Withdrawal-risk system built for peak hours: it reads the verification queue and each player's history, applies ~20 risk rules,
+    approves the withdrawals that pass, and holds the ones that match a rule with a risk remark. Never rejects and never pays — payment stays with the payment department.</p>
+
+  <div class="grid">
+    <div class="card"><div class="k">Where it runs</div><div class="v mono">/home/wtd/wtd-bot-server<br>wtd-bot · wtd-audit · wtd-chrome (:1)</div></div>
+    <div class="card"><div class="k">Config / login</div><div class="v mono">config.local.json → boLogin.username<br><span style="color:var(--tx3)">root-only, per-site password override (FW)</span></div></div>
+    <div class="card"><div class="k">Dashboard</div><div class="v mono">wtd.mcwriskops.com<br>127.0.0.1:8788 · admin API 8787</div></div>
+    <div class="card"><div class="k">Sites</div><div class="v">Live on <b>M1 K1 B1 M2 B3 B4 B5 TK JW FW</b><br>
+      <span style="color:var(--tx3)">Off: B2 G1 M3 D88 VN9 GA68 ST C1</span></div></div>
+  </div>
+
+  <h3>What it reads</h3>
+  <table class="t">
+    <tbody>
+      <tr><td>Withdrawal verification queue</td><td>Pending withdrawals per site and currency — order list, risk score, hold decisions. <span style="color:var(--tx3)">Every few seconds</span></td></tr>
+      <tr><td>Player profile &amp; history</td><td>Deposits, withdrawals, bets, bonuses, account age, group, changed-by. <span style="color:var(--tx3)">Per order</span></td></tr>
+      <tr><td>Bonus config &amp; bonus report</td><td>Titles, unfinished bonuses, bonus-to-deposit share. <span style="color:var(--tx3)">Per order / periodic</span></td></tr>
+      <tr><td>Win/loss</td><td>Today's player and site totals — daily player limit, daily site budget. <span style="color:var(--tx3)">Periodic</span></td></tr>
+      <tr><td>Reports</td><td>Per-site summary and vendor figures for dashboard statistics. <span style="color:var(--tx3)">Periodic</span></td></tr>
+    </tbody>
+  </table>
+
+  <div class="cols">
+    <div>
+      <h3>What it writes</h3>
+      <ul class="write">
+        <li><b>Approve</b> — clears a pending withdrawal so it goes to payment; the automatic clearing used at peak hours</li>
+        <li><b>Hold</b> — <code>POST /manager/payment/holdWithdrawal</code>, status 3, executor "bot account"</li>
+        <li><b>Remark</b> — <code>POST /manager/member/updateRiskRemark</code>, rule reason next to the player</li>
+        <li><b>Release auto-verify</b> — <code>removeAutoVerifyWithdrawalExecutor</code>, a human decides instead</li>
+      </ul>
+      <div class="notebox">Writes run only when <b>allowHoldWrites</b> is true, the site switch is on and the site's hold mode is
+        <code>real</code>. Every call and its answer is appended to <code>data/hold-actions.jsonl</code>.</div>
+    </div>
+    <div>
+      <h3>What it never does</h3>
+      <ul class="never">
+        <li>Reject, pay or settle a withdrawal or deposit</li>
+        <li>Close or cancel a withdrawal as paid, or move money</li>
+        <li>Change a player's status, VIP level, group or limits</li>
+        <li>Create, edit or delete a bonus, adjustment or promotion</li>
+        <li>Change a back-office setting or back-office user</li>
+        <li>Export player lists in bulk</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>Safeguards</h3>
+  <table class="t"><tbody>
+    <tr><td>Switches</td><td><code>allowHoldWrites</code>, per-site switch, <code>holdMode</code>, <code>botAccounts</code> allow-list (riskai only)</td></tr>
+    <tr><td>Stop / resume</td><td>Admin stop and resume endpoints, plus AUTOLOGIN / STOP files — halts the bot without touching the back office</td></tr>
+    <tr><td>Audit trail</td><td><code>audit/watch.js</code> re-checks every bot action against the raw responses; <code>watch.log</code> keeps the trail</td></tr>
+    <tr><td>Access</td><td>Only the bot and its auditor use the session; VNC desktop bound to localhost; admin API needs a secret</td></tr>
+  </tbody></table>
+
+  <h3>Where results go</h3>
+  <table class="t"><tbody>
+    <tr><td>Telegram alert chat</td><td>Risk alerts and hold confirmations — the alert chat</td></tr>
+    <tr><td>Telegram hold group</td><td>Hold list, releases, daily hold summary — the hold group</td></tr>
+    <tr><td>Google Sheet</td><td>Tab "Suspicious Sports Bets" — held withdrawals with rule and remark</td></tr>
+    <tr><td>Dashboard</td><td>Orders, rules, hold list, site switches — staff login; admin pages need an admin</td></tr>
+  </tbody></table>
+</section>
+
+<!-- ============ riskai2 ============ -->
+<section id="riskai2">
+  <div class="sec-head">
+    <h2><span>riskai2</span> — Vendor Report</h2>
+    <span class="pill run">Running</span><span class="pill r">Read-only</span>
+  </div>
+  <p class="role">Reporting service. Signs in to all 18 sites, pulls each vendor report and builds a per-site,
+    per-vendor profit table with 7-day and 30-day totals. Writes nothing, sends nothing to Telegram.</p>
+
+  <div class="grid">
+    <div class="card"><div class="k">Where it runs</div><div class="v mono">/opt/vendor-report<br>vendor-report.service · uvicorn 127.0.0.1:8002</div></div>
+    <div class="card"><div class="k">Config / login</div><div class="v mono">vendor_report_fetcher.py → USERNAME<br><span style="color:var(--tx3)">root-only, never exposed by the API</span></div></div>
+    <div class="card"><div class="k">Public</div><div class="v mono">kpi.mcwriskops.com/vendor</div></div>
+    <div class="card"><div class="k">Session</div><div class="v">Fresh sign-in per fetch cycle, no stored browser session, 8 workers</div></div>
+  </div>
+
+  <h3>What it reads</h3>
+  <table class="t"><tbody>
+    <tr><td>Vendor report</td><td><code>GET /manager/ReportController/searchVendorReport</code> — per vendor, per currency, chosen range. <span style="color:var(--tx3)">On load + every 5 min (cache)</span></td></tr>
+    <tr><td>7-day total</td><td>Same endpoint, end-7 to end. <span style="color:var(--tx3)">With each build</span></td></tr>
+    <tr><td>30-day total</td><td>Three non-overlapping 20-day segments. <span style="color:var(--tx3)">Every 30 min, warm worker</span></td></tr>
+    <tr><td>Site list / login</td><td>Per-site back-office login — session only. <span style="color:var(--tx3)">Once per cycle</span></td></tr>
+  </tbody></table>
+
+  <div class="cols">
+    <div>
+      <h3>Safeguards</h3>
+      <ul class="safe">
+        <li>Read-only by construction — GET on the report endpoint only, no write code path</li>
+        <li>One account, one place — riskai2 is signed in from this service only</li>
+        <li>8 workers maximum, one cycle at a time, 15 s manual-refresh window</li>
+        <li>5-minute cache so page reloads never hit the back office</li>
+        <li>Range capped at 7 days on the page; the 30-day total is built once per half hour</li>
+      </ul>
+    </div>
+    <div>
+      <h3>What it never does</h3>
+      <ul class="never">
+        <li>Issue any request other than sign-in and the vendor report read</li>
+        <li>Approve, reject, hold or pay anything</li>
+        <li>Add or edit bonuses, remarks, adjustments or player details</li>
+        <li>Change any back-office setting or user</li>
+        <li>Post to Telegram or any chat</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>Where results go</h3>
+  <table class="t"><tbody>
+    <tr><td>kpi.mcwriskops.com/vendor</td><td>Profit per site and vendor, 7d and 30d totals, last-updated time — anyone with the address</td></tr>
+    <tr><td>JSON endpoints</td><td><code>/vendor/api/vendor-report</code> and <code>/vendor/api/vendor-report/progress</code></td></tr>
+    <tr><td>Kept on the VPS</td><td><code>summary_cache.json</code> and the in-memory report cache. No player data stored.</td></tr>
+  </tbody></table>
+</section>
+
+<!-- ============ riskai3 ============ -->
+<section id="riskai3">
+  <div class="sec-head">
+    <h2><span>riskai3</span> — RiskDesk</h2>
+    <span class="pill run">Running</span><span class="pill r">Read-only</span>
+  </div>
+  <p class="role">The risk team's desk. Reads withdrawals, deposits, bonuses, bets, reports and player profiles on all 18 sites,
+    then shows a live pending dashboard, a per-verifier board, 13 automatic checks, and posts reports to Telegram.
+    It never approves, rejects, edits or creates anything.</p>
+
+  <div class="grid">
+    <div class="card"><div class="k">Where it runs</div><div class="v mono">pending-board.service · livewd-worker.js</div></div>
+    <div class="card"><div class="k">Config / login</div><div class="v mono">/opt/pending-board/data/settings.json → bo.user<br><span style="color:var(--tx3)">root-only, re-login automatic</span></div></div>
+    <div class="card"><div class="k">Public</div><div class="v mono">riskdesk.mcwriskops.com<br><span style="color:var(--tx3)">dashboard open · live board by private link · admin needs an account</span></div></div>
+    <div class="card"><div class="k">Login stop rule</div><div class="v">Two refused sign-ins in a row stop all automatic sign-ins with riskai3 until an admin saves the login again</div></div>
+  </div>
+
+  <h3>What it reads <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--tx3)">— all 18 sites, with riskai3 only</span></h3>
+  <table class="t"><tbody>
+    <tr><td>Pending Dashboard</td><td>Pending and on-hold withdrawals per site and currency <span style="color:var(--tx3)">every few seconds</span></td></tr>
+    <tr><td>Pending tracker</td><td>Lock cancelled, long escalations, holds without a remark, stale holds, verified within 24 h <span style="color:var(--tx3)">continuous → alerts, daily Excel at midnight</span></td></tr>
+    <tr><td>Live board</td><td>Withdrawals each verifier handled, per site <span style="color:var(--tx3)">last hour every minute, day every 15 min → charts 16:15 / 21:15 / 07:15</span></td></tr>
+    <tr><td>Gross Margin</td><td>Summary report (gross margin, turnover, win/loss) and vendor report <span style="color:var(--tx3)">every 15 min</span></td></tr>
+    <tr><td>USD big win</td><td>M1 USD turnover report</td></tr>
+    <tr><td>Holds</td><td>On-hold withdrawals and the players' risk remarks</td></tr>
+    <tr><td>GA28 / SV388</td><td>Cockfighting turnover and game transaction details (arena), player profiles</td></tr>
+    <tr><td>Taixiu · Fishing</td><td>SV388 dice bets with profiles; fishing-vendor results across accounts</td></tr>
+    <tr><td>V-Soccer / UG Basketball</td><td>Turnover, bets and registration date of new winners</td></tr>
+    <tr><td>Card PC</td><td>Scratch-card deposits on the VND sites</td></tr>
+    <tr><td>Evolution / Pragmatic</td><td>Live-casino bet records, to find collusion pairs</td></tr>
+    <tr><td>Bonus patterns</td><td>Bonus report, linked-account (Fraud) search, player profiles <span style="color:var(--tx3)">every 10 min</span></td></tr>
+    <tr><td>Velki</td><td><span style="color:var(--tx3)">Switched off</span></td></tr>
+  </tbody></table>
+
+  <div class="cols">
+    <div>
+      <h3>Safeguards</h3>
+      <ul class="safe">
+        <li>Write requests are blocked before they leave the VPS — reads and back-office searches only</li>
+        <li>Known sites only — requests go to the 18 sites' own back-office addresses</li>
+        <li>Paced, queued reads so the back office never gets a burst</li>
+        <li>Auto-pause when the back office answers slowly, so the pending dashboard keeps priority</li>
+        <li>Per-pass limits — e.g. 40 linked-account searches per site per 10 min</li>
+        <li>Players already checked are remembered, so they are not looked up again</li>
+        <li>Admin pages use hashed RiskDesk passwords; 5 wrong passwords lock sign-in for 5 minutes</li>
+      </ul>
+    </div>
+    <div>
+      <h3>What it never does</h3>
+      <ul class="never">
+        <li>Approve, reject, lock, hold or cancel a withdrawal or deposit</li>
+        <li>Add, edit or remove a bonus, adjustment, risk remark or player detail</li>
+        <li>Change a player's status, VIP level, group or limits</li>
+        <li>Change any back-office setting or user</li>
+        <li>Download or export player lists in bulk</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>Where results go</h3>
+  <table class="t"><tbody>
+    <tr><td>Pending Dashboard</td><td>Pending and on-hold counts per site and currency — anyone with the address</td></tr>
+    <tr><td>Live board</td><td>Withdrawals handled per verifier, charts — holders of the private link</td></tr>
+    <tr><td>Admin pages</td><td>Settings, check status, alert history — RiskDesk admin accounts</td></tr>
+    <tr><td>Telegram groups</td><td>Alerts, Gross Margin report, Live board charts, daily fraud report</td></tr>
+    <tr><td>Kept on the VPS</td><td>Verifier counts, latest 1,500 alerts, check progress, remembered facts (e.g. registration dates). Linked-account ring members' bank / IP / phone / email kept for the current day only. No player passwords.</td></tr>
+  </tbody></table>
+</section>
+
+<!-- ============ riskai4 ============ -->
+<section id="riskai4">
+  <div class="sec-head">
+    <h2><span>riskai4</span> — Risk Central</h2>
+    <span class="pill run">In use</span><span class="pill r">Read-only</span><span class="pill off">Bot paused</span>
+  </div>
+  <p class="role">Central risk functions with one read-only connection: search and view only, while approve, reject, hold and edit
+    requests are blocked at the account level. The shadow bot reads each withdrawal, decides approve or hold, and records the
+    decision without acting in the back office.</p>
+
+  <div class="grid">
+    <div class="card"><div class="k">Back-office access</div><div class="v">One account, search and view only. Approve / reject / hold / edit are blocked.</div></div>
+    <div class="card"><div class="k">Shadow bot</div><div class="v">Runs on the same connection, records decisions only, rejection built but switched off. <b>Currently paused.</b></div></div>
+    <div class="card"><div class="k">Independent checker</div><div class="v">Separate program, re-checks every bot approval against the rules every 30 s. Any mismatch stops the bot and alerts Telegram.</div></div>
+    <div class="card"><div class="k">Other sources</div><div class="v">Team shift roster (Google Sheet, read-only) and, for Game Center, the game provider's round reports.</div></div>
+  </div>
+
+  <h3>Functions</h3>
+  <table class="t">
+    <thead><tr><th>Function</th><th>Purpose</th><th style="width:70px">State</th></tr></thead>
+    <tbody>
+      <tr><td>On Hold</td><td>Every held withdrawal across the 18 brands, with reason and time held</td><td class="y">On</td></tr>
+      <tr><td>WTD Check</td><td>Withdrawals each staff member verified, per day and shift</td><td class="y">On</td></tr>
+      <tr><td>Staff Activity</td><td>Staff working time against the shift roster, idle gaps flagged</td><td class="y">On</td></tr>
+      <tr><td>Promotions</td><td>Promotion claims by brand, bonus code, hour and day</td><td class="y">On</td></tr>
+      <tr><td>Games</td><td>House win/loss by provider and game</td><td class="y">On</td></tr>
+      <tr><td>Games daily report</td><td>09:00 win/loss report to a private Telegram chat</td><td class="y">On</td></tr>
+      <tr><td>New Reg</td><td>New sign-ups, first-deposit conversion, top 10 affiliates</td><td class="y">On</td></tr>
+      <tr><td>Game Center</td><td>Chip-dumping detection on EVOLUTION, SEXY and KM</td><td class="n">Off</td></tr>
+      <tr><td>MCW Bot (shadow)</td><td>Approve-or-hold decision per withdrawal, recorded, never acted</td><td class="n">Off</td></tr>
+      <tr><td>MCW Bot · checker</td><td>Re-check every approval, stop the bot on any mismatch</td><td class="y">On</td></tr>
+      <tr><td>MCW Bot · game routing</td><td>Live-casino players (EVOLUTION, SEXY) to a deep game check</td><td class="n">Off</td></tr>
+      <tr><td>MCW Bot · auto reject</td><td>Reject a withdrawal with a remark, without changing the balance</td><td class="n">Off</td></tr>
+      <tr><td>Alert Center</td><td>Monitoring alerts to Telegram (Top Player Watch)</td><td class="n">Off</td></tr>
+    </tbody>
+  </table>
+
+  <div class="cols">
+    <div>
+      <h3>Data out</h3>
+      <ul class="flow">
+        <li>Nothing is exported</li>
+        <li>09:00 daily game report to a private Telegram chat</li>
+        <li>Bot and checker alerts while the bot runs</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Where it sits</h3>
+      <ul class="safe">
+        <li>Hosted outside the risk VPS — the account is not on the company VPS, so it does not appear in that host's units or processes</li>
+        <li>Before first use on any new host: add the account to that service's config only, confirm riskai / riskai2 / riskai3 untouched, record the owner, stop auto-login after two refused passwords, verify one site end to end</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============ riskai5 ============ -->
+<section id="riskai5">
+  <div class="sec-head">
+    <h2><span>riskai5</span> — Exchange Update Bot</h2>
+    <span class="pill run">Running</span>
+  </div>
+  <p class="role">Disposes of a player immediately from Telegram: reject the pending withdrawals, transfer the fund back to the
+    main wallet, deactivate the account. The only account in the estate with money-affecting rights, so every action is shown
+    as a preview and only runs after a whitelisted user replies <code>/ok</code>. It never approves, pays or settles.</p>
+
+  <div class="grid">
+    <div class="card"><div class="k">Where it runs</div><div class="v mono">/opt/urgent-dispose/bot.py<br>urgent-dispose.service · restarted on boot</div></div>
+    <div class="card"><div class="k">Config / login</div><div class="v mono">/opt/urgent-dispose/env → BO_USER=riskai5<br><span style="color:var(--tx3)">mode 600 · fresh sign-in per command and site</span></div></div>
+    <div class="card"><div class="k">Bot</div><div class="v mono">Disposal bot · English only<br><span style="color:var(--tx3)">TG_ALLOWED: 7 IDs, checked per message</span></div></div>
+    <div class="card"><div class="k">Coverage</div><div class="v">All 18 sites, one site code per command. Group mode: bot is group admin and deletes messages from any ID outside the whitelist.</div></div>
+  </div>
+
+  <h3>What it reads</h3>
+  <table class="t"><tbody>
+    <tr><td>Status snapshot <code>/status</code></td><td>Name, currency, account status, platform and provider balance, on-hold withdrawals, unsettled bet amount, profile remark</td></tr>
+    <tr><td>Pending withdrawals</td><td>Status 1, 3 and 4 including on-hold, plus the lock holder</td></tr>
+    <tr><td>Player lookup</td><td><code>searchMember</code> (dcf=false) + <code>getAccountBalanceList</code> existence check</td></tr>
+  </tbody></table>
+
+  <h3>Five writes, all previewed and confirmed first</h3>
+  <table class="t"><tbody>
+    <tr><td>Reject</td><td><code>getVerifyWithdrawal</code> then <code>rejectAndAdjustWithdrawal</code> — rejects only, never approves</td></tr>
+    <tr><td>Take back</td><td><code>transferType=0, providerId=-1, takeBackType=1</code>, amount = provider balance. Only when the provider balance is above zero.</td></tr>
+    <tr><td>Deactivate</td><td>Player status set to inactive</td></tr>
+    <tr><td>Auto-payout off</td><td><code>updateProfileSetting</code> on Member → Profile Setting — right granted, so auto-payout can be switched off</td></tr>
+    <tr><td>Remark</td><td><code>updateRiskRemark</code> — only with the <code>remark</code> keyword; identical text is skipped</td></tr>
+  </tbody></table>
+  <div class="notebox"><b>Shortcuts:</b> <code>/kill</code> runs switch off auto-payout → reject → take back → deactivate in that order,
+    and accepts the keywords <code>off reject takeback inactive</code> to run fewer. <code>/active</code> sets status=1, or status=1 plus
+    <code>autoVerification=1</code> with <code>/av</code>.</div>
+
+  <div class="cols">
+    <div>
+      <h3>Safeguards</h3>
+      <ul class="safe">
+        <li>Preview then <code>/ok</code> — pending plans expire after 15 minutes</li>
+        <li>Whitelist of 7 Telegram IDs checked per message; anyone else gets their ID back and nothing runs</li>
+        <li>Unsettled-bet stop — <code>pendBetAmount &gt; 0</code> blocks the whole disposal</li>
+        <li>Reason rule — from the operator's words first, then the profile; if neither exists the flow aborts</li>
+        <li>Read-back — after each write the order, balance list and profile are read again before success is reported</li>
+        <li>Stops at the first failed step and reports which step and why</li>
+      </ul>
+    </div>
+    <div>
+      <h3>What it never does</h3>
+      <ul class="never">
+        <li>Approve, pay, settle or complete a withdrawal or deposit</li>
+        <li>Reject or hold anything without an explicit <code>/ok</code> from a whitelisted user after a preview</li>
+        <li>Touch a player who has an unsettled bet</li>
+        <li>Continue past a failed step</li>
+        <li>Invent its own reason text</li>
+        <li>Change VIP level, group, limits or any bonus</li>
+        <li>Accept a command from any other Telegram ID</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>Where results go</h3>
+  <table class="t"><tbody>
+    <tr><td>Disposal bot (private chat)</td><td>Status snapshots, previews, receipts — the whitelisted user</td></tr>
+    <tr><td>Telegram command group</td><td>Same, kept as the audit trail of who disposed of whom — admins only can post</td></tr>
+    <tr><td>Back office (via riskai5)</td><td>The rejected withdrawal, take-back entry, inactive status, remark — risk and payment staff</td></tr>
+    <tr><td>bot.log / journald</td><td>Bot events and per-site login results — VPS root</td></tr>
+  </tbody></table>
+</section>
+
+<!-- ============ kpi dashboard ============ -->
+<section id="kpi">
+  <div class="sec-head">
+    <h2><span>kpi</span> — KPI Dashboard</h2>
+    <span class="pill run">Running</span><span class="pill off">No back-office account</span>
+  </div>
+  <p class="role">The staff performance board. It holds no back-office login of its own: it is fed by uploaded KPI workbooks,
+    Lark attendance, the roster sheet for leave and the riskai2 vendor page, and turns that into per-verifier figures,
+    rank, late / MIA and leave.</p>
+
+  <div class="grid">
+    <div class="card"><div class="k">Where it runs</div><div class="v mono">/opt/kpi-dashboard<br>FastAPI + systemd (kpi-dashboard), uvicorn from its own venv</div></div>
+    <div class="card"><div class="k">Public</div><div class="v mono">kpi.mcwriskops.com<br><span style="color:var(--tx3)">kpi.mcwriskops.com/vendor is the riskai2 page</span></div></div>
+    <div class="card"><div class="k">Fed by</div><div class="v">Monthly KPI workbooks, Lark attendance (three tenants), roster sheet, vendor figures</div></div>
+    <div class="card"><div class="k">Back-office account</div><div class="v">None. It never signs in to a back office; vendor figures arrive through riskai2.</div></div>
+  </div>
+
+  <h3>What it reads</h3>
+  <table class="t"><tbody>
+    <tr><td>KPI workbooks</td><td>Uploaded xlsx — the monthly staff KPI summary and the Verified Wtd transaction log (~99 MB, 316k rows)</td></tr>
+    <tr><td>Lark attendance</td><td>Clock-in data per staff member, three separate Lark tenants, joined on the Lark user id (MCW id)</td></tr>
+    <tr><td>Roster sheet</td><td>Google Sheet "SL RISK TEAM ROSTER" — leave codes (OFF, SL, EL, AL, CL, UL, Uninformed, RDOT)</td></tr>
+    <tr><td>Vendor figures</td><td>The riskai2 vendor page on the same host — profit per site and vendor</td></tr>
+  </tbody></table>
+
+  <div class="cols">
+    <div>
+      <h3>Safeguards</h3>
+      <ul class="safe">
+        <li>Reads no back office — there is no BO session to lose or to lock</li>
+        <li>Data comes in as files and API pulls; nothing is written back to a back office</li>
+        <li>Staff and rank edits are made by the dashboard's own admin, recorded in the KPI change notes</li>
+        <li>Served over HTTPS on the same VPS as the rest of the estate</li>
+      </ul>
+    </div>
+    <div>
+      <h3>What it never does</h3>
+      <ul class="never">
+        <li>Sign in to a back office, so it cannot approve, hold or reject anything</li>
+        <li>Move or settle money</li>
+        <li>Change a player's status, limits or bonuses</li>
+        <li>Replace the vendor page it reads — that stays riskai2's output</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>Where results go</h3>
+  <table class="t"><tbody>
+    <tr><td>kpi.mcwriskops.com</td><td>Per-verifier KPI, rank, late / MIA, leave modal and the attendance import — risk team and management</td></tr>
+    <tr><td>Mobile view</td><td>The same pages rendered for phone use</td></tr>
+  </tbody></table>
+</section>
+
+<footer>
+  Measured on the VPS (the company VPS) Nov 23–24, 2026 — systemd units, running processes, configs and logs.
+  Session liveness per account was not re-verified, because signing in would kick the running system.
+  Account rights for riskai5 are taken from the bot's own behaviour and the rights granted on the account.
+</footer>
+</main>
+</div>
+<script>
+(function(){
+  var links=[].slice.call(document.querySelectorAll('#nav a'));
+  var secs=links.map(function(a){return document.querySelector(a.getAttribute('href'))});
+  var mark=function(){
+    var y=window.scrollY+120,best=0;
+    secs.forEach(function(s,i){ if(s && s.offsetTop<=y) best=i; });
+    links.forEach(function(a,i){ a.classList.toggle('on', i===best); });
+  };
+  window.addEventListener('scroll',mark,{passive:true}); mark();
+})();
+</script>
+</body>
+</html>
